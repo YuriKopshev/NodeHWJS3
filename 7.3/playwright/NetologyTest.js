@@ -1,40 +1,41 @@
 
-const { PASSWORD } = require('./user.js');
-const { LOGIN } = require('./user.js');
+
+const user = require('../playwright/user');
 const { chromium } = require('playwright');
+const { test, expect } = require("@playwright/test");
 
 //positive test
 (async () => {
   const browser = await chromium.launch({
-    headless: false,
+    //headless: false,
     slowMo: 5000,
   });
-
   const page = await browser.newPage();
-  (await page).goto("https://netology.ru");
-  (await page).click('.shared-components-Header-header-module__login--JN4tR');
-  (await page).fill('input[placeholder="Email"]', LOGIN);
-  (await page).fill('[placeholder="Пароль"]', PASSWORD);
-  (await page).click('text=Войти');
-  const content = (await page).textContent('text=Мои курсы и профессии');
-  expect(content).toBe('Мои курсы и профессии');
-  (await browser).close();
+  await page.goto("https://netology.ru");
+  await page.click('.shared-components-Header-header-module__login--JN4tR');
+  
+  await page.fill('[placeholder="Email"]',user.login);
+  await page.fill('[placeholder="Пароль"]',user.pass);
+  await page.click('text=Войти');
+  await expect(page).toHaveURL("https://netology.ru/profile");
+  await browser.close();
 })();
 
 //negative test
 (async () => {
   const browser = await chromium.launch({
-    headless: false,
+    //headless: false,
     slowMo: 5000,
   });
 
   const page = await browser.newPage();
-  (await page).goto("https://netology.ru");
-  (await page).click('.shared-components-Header-header-module__login--JN4tR');
-  (await page).fill('[placeholder="Email"]', 'ivan34@mail.ru');
-  (await page).fill('[placeholder="Пароль"]', '12345');
-  (await page).click('text=Войти');
-  const content = (await page).textContent('[class="components-ui-Form-Hint-hint-module__hint--A2dPV inputHint"]');
-  expect(content).toBe('Вы ввели неправильно логин или пароль');
-  (await browser).close();
+  await page.goto("https://netology.ru");
+  await page.click('.shared-components-Header-header-module__login--JN4tR');
+  await page.fill('[placeholder="Email"]', 'ivan34@mail.ru');
+  await page.fill('[placeholder="Пароль"]', '12345');
+  await page.click('text=Войти');
+  await expect(
+		page.locator("text=Вы ввели неправильно логин или пароль")
+	).toBeVisible();
+  await browser.close();
 })();
